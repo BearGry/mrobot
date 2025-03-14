@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/light/catkin_ws/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/light/catkin_ws/src/hokuyo_node/include/**",
+        "/home/light/catkin_ws/src/map/include/**",
+        "/home/light/catkin_ws/src/mrobot/include/**",
+        "/home/light/catkin_ws/src/nav/include/**",
+        "/home/light/catkin_ws/src/wpb_home/wpb_home_bringup/include/**",
+        "/home/light/catkin_ws/src/wpb_home/wpb_home_tutorials/include/**",
+        "/home/light/catkin_ws/src/wpb_home/wpbh_local_planner/include/**",
+        "/home/light/catkin_ws/src/wpr_simulation/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
