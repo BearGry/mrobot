@@ -18,7 +18,7 @@ class MRobotDriver:
         # 参数设置
         self.wheel_radius = rospy.get_param("~wheel_radius", 0.095)         # 后轮半径（单位 m）
         self.wheel_separation = rospy.get_param("~wheel_separation", 0.515)   # 两后轮圆心间距（单位 m）
-        self.conversion_ratio = rospy.get_param("~conversion_ratio", 10.0)    # 换向频率与轮子转速（rps）的换算系数
+        self.conversion_ratio = rospy.get_param("~conversion_ratio", 6600)    # 换向频率（0.1Hz）与轮子转速（rps）的换算系数
         self.control_rate = rospy.get_param("~rate", 20)                      # 控制周期（Hz）
 
         # 初始化 cmd_vel 的期望速度
@@ -49,6 +49,24 @@ class MRobotDriver:
 
         # 互斥锁保护共享数据（如 cmd_vel）
         self.lock = threading.Lock()
+
+        # 设置里程计协方差（可根据实际情况调整）
+        self.odom_pose_covariance = [
+            1e-9, 0,    0,    0,    0,    0,
+            0,    1e-3, 1e-9, 0,    0,    0,
+            0,    0,    1e6,  0,    0,    0,
+            0,    0,    0,    1e6,  0,    0,
+            0,    0,    0,    0,    1e6,  0,
+            0,    0,    0,    0,    0,    1e-9
+        ]
+        self.odom_twist_covariance = [
+            1e-9, 0,    0,    0,    0,    0,
+            0,    1e-3, 1e-9, 0,    0,    0,
+            0,    0,    1e6,  0,    0,    0,
+            0,    0,    0,    1e6,  0,    0,
+            0,    0,    0,    0,    1e6,  0,
+            0,    0,    0,    0,    0,    1e-9
+        ]
 
     def cmd_vel_callback(self, msg):
         with self.lock:
@@ -122,8 +140,8 @@ class MRobotDriver:
             try:
                 left_speed_hz = self.left_motor.read_speed(hz=True)  # 左轮返回的换向频率（已处理符号）
                 right_speed_hz = self.right_motor.read_speed(hz=True)
-                left_rps_meas = left_speed_hz / 10.0
-                right_rps_meas = right_speed_hz / 10.0
+                left_rps_meas = left_speed_hz / self.conversion_ratio
+                right_rps_meas = right_speed_hz / self.conversion_ratio
             except Exception as e:
                 rospy.logwarn("读取电机速度出错: %s", e)
                 left_rps_meas = 0.0
@@ -145,6 +163,9 @@ class MRobotDriver:
             odom.pose.pose.orientation.y = odom_quat[1]
             odom.pose.pose.orientation.z = odom_quat[2]
             odom.pose.pose.orientation.w = odom_quat[3]
+            # 添加协方差矩阵，表达位置和速度的不确定性
+            odom.pose.covariance = self.odom_pose_covariance
+            odom.twist.covariance = self.odom_twist_covariance
             odom.twist.twist.linear.x = v_meas
             odom.twist.twist.angular.z = omega_meas
             self.odom_pub.publish(odom)
@@ -161,14 +182,19 @@ class MRobotDriver:
             self.last_time = current_time
             rate.sleep()
 
+    def close(self):
+        self.left_motor.stop()
+        self.right_motor.stop()
+        self.communicator.close()
+
 def main():
     driver = MRobotDriver()
     try:
         driver.run()
     except rospy.ROSInterruptException:
-        pass
+        raise
     finally:
-        driver.communicator.close()
+        driver.close()
 
 if __name__ == '__main__':
     main()

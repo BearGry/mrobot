@@ -16,7 +16,7 @@ sys.path.append(str(root_path))
 from scripts.rs import RS485Communicator, ModbusDevice
 
 
-INIT_SPEED = 3000.0
+INIT_SPEED = 3500.0
 
 def get_key(timeout=0.1):
     """
