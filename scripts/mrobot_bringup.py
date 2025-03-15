@@ -134,7 +134,7 @@ class MRobotDriver:
                 self.left_motor.write_speed(left_motor_cmd)
                 self.right_motor.write_speed(right_motor_cmd)
             except Exception as e:
-                rospy.logwarn("写入电机速度出错: %s", e)
+                rospy.logwarn("写入电机速度出错: %s, 写入速度： %d", e, round(left_motor_cmd))
 
             # 读取当前电机速度（这里使用换向频率版本，单位为0.1Hz，转换为 rps）
             try:
@@ -195,6 +195,7 @@ def main():
         raise
     finally:
         driver.close()
+        print('运行结束')
 
 if __name__ == '__main__':
     main()
