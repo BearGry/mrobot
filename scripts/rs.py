@@ -59,6 +59,7 @@ class RS485Communicator(object):
 class ModbusDevice(object):
     """
     封装MODBUS RTU协议操作，包括读保持寄存器、写单个寄存器、写多个寄存器。
+    此外提供更常用的读写速度接口，上层使用更加便捷
     每个对象对应一个从站设备，通过slave_addr指定。
     """
     def __init__(self, communicator, slave_addr):
@@ -111,12 +112,12 @@ class ModbusDevice(object):
             raise Exception("MODBUS异常，错误码: {}".format(error_code))
         return response
 
-    def read_holding_registers(self, start_address, quantity, origin=False, signed=False):
+    def read_holding_registers(self, start_address, quantity, raw_data=False, signed=False):
         """
         使用功能码0x03读保持寄存器
         :param start_address: 起始寄存器地址（整数）
         :param quantity: 寄存器数量（整数）
-        :param origin: 是否要原始数据字节数组
+        :param raw_data: 是否要原始接收到的字节数组数据
         :param signal: 解码处理时，数值是否带符号
         :return: 包含各寄存器值的列表，每个值为一个整数
         """
@@ -133,7 +134,7 @@ class ModbusDevice(object):
         # 第3字节为数据字节数
         byte_count = response[2]
         # 返回数据部分（原始字节数组）
-        if origin:
+        if raw_data:
             data_bytes = response[3:3+byte_count]
             return data_bytes
         registers = []
@@ -194,17 +195,33 @@ class ModbusDevice(object):
     def read_speed(self, hz=True):
         '''
         读取速度值，换向频率（单位0.1Hz） 或 电机转速（单位RPM）
-        param hz: 是否要换向频率版本，False的话为电机转速版本
+        :param hz: 是否要换向频率版本，False的话为电机转速版本
         '''
+        result = 0
         if hz:
-            self.read_holding_registers(0x0022, 1, signed=True)[0]
+            result = self.read_holding_registers(0x0022, 1, signed=True)[0]
+            # 这里取反是为了统一读写速度时，正数为向前走，负数为向后走
+            if self.slave_addr == 0x01: # 左轮
+                result = -result
         else:
-            self.read_holding_registers(0x0034, 1)[0]
+            result = self.read_holding_registers(0x0034, 1)[0]
+        return result
 
-    def write_speed(self):
+    def write_speed(self, speed):
         '''
-        
+        速度闭环控制目标速度-换向频率（单位0.1Hz）
+        :param speed: 目标速度值-换向频率（单位0.1Hz）  (浮点数会被转化为整数)
         '''
+        speed = int(round(speed))
+        if self.slave_addr == 0x01:
+            speed = -speed
+        self.write_single_register(0x0043, speed, signed=True)
+
+    def stop(self):
+        '''
+        让电机停下来
+        '''
+        self.write_speed(0)
         
 
 if __name__ == '__main__':
