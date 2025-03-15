@@ -32,7 +32,7 @@ class MRobotDriver:
         self.last_time = rospy.Time.now()
 
         # ROS 话题的发布和订阅
-        self.odom_pub = rospy.Publisher("odom", Odometry, queue_size=10)
+        self.odom_pub = rospy.Publisher("odom", Odometry, queue_size=50)
         self.cmd_vel_sub = rospy.Subscriber("cmd_vel", Twist, self.cmd_vel_callback)
 
         # TF 广播器
