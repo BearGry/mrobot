@@ -84,8 +84,8 @@ class MRobotDriver:
         v_left = v - (omega * self.wheel_separation / 2.0)
         v_right = v + (omega * self.wheel_separation / 2.0)
         # 转换为轮子的转速（rps）
-        left_rps = v_left / self.wheel_radius
-        right_rps = v_right / self.wheel_radius
+        left_rps = v_left / self.wheel_radius / math.pi / 2.0
+        right_rps = v_right / self.wheel_radius / math.pi / 2.0
         return left_rps, right_rps
 
     def update_odometry(self, dt, left_rps_meas, right_rps_meas):
@@ -93,8 +93,8 @@ class MRobotDriver:
         根据测量得到的左右轮转速（rps），计算机器人运动学信息并积分更新里程计
         """
         # 将轮子转速（rps）转换为线速度（m/s）
-        v_left = left_rps_meas * self.wheel_radius
-        v_right = right_rps_meas * self.wheel_radius
+        v_left = left_rps_meas * self.wheel_radius * 2 * math.pi
+        v_right = right_rps_meas * self.wheel_radius * 2 * math.pi
         # 机器人线速度和角速度（差速模型）
         v = (v_left + v_right) / 2.0
         omega = (v_right - v_left) / self.wheel_separation
@@ -188,6 +188,7 @@ class MRobotDriver:
         self.communicator.close()
 
 def main():
+    print('启动')
     driver = MRobotDriver()
     try:
         driver.run()
