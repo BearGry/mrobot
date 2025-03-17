@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<robot name="ros_car">
+
+  <!-- 底盘：定义 base_link，其视觉模型上移 0.07 米使得底部与地面接触 -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0.07" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.85 0.445 0.14"/>
+      </geometry>
+      <material name="grey">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <!-- 前轮：万向从动轮，采用圆柱体，旋转后轴向沿 y -->
+  <link name="front_left_wheel">
+    <visual>
+      <origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+      <geometry>
+        <cylinder length="0.045" radius="0.09"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.0 0.0 0.0 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <link name="front_right_wheel">
+    <visual>
+      <origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+      <geometry>
+        <cylinder length="0.045" radius="0.09"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+
+  <!-- 后轮：差速驱动轮 -->
+  <link name="rear_left_wheel">
+    <visual>
+      <origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+      <geometry>
+        <cylinder length="0.053" radius="0.095"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+
+  <link name="rear_right_wheel">
+    <visual>
+      <origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+      <geometry>
+        <cylinder length="0.053" radius="0.095"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+
+  <!-- 固定关节将各个轮子与底盘连接 -->
+  <!-- 前左轮：位置设为 x=0.195（前方）、y=+0.265（左侧）、z=0.09（轮心高度） -->
+  <joint name="front_left_wheel_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="front_left_wheel"/>
+    <origin xyz="0.195 0.265 0.09" rpy="0 0 0"/>
+  </joint>
+
+  <!-- 前右轮 -->
+  <joint name="front_right_wheel_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="front_right_wheel"/>
+    <origin xyz="0.195 -0.265 0.09" rpy="0 0 0"/>
+  </joint>
+
+  <!-- 后左轮：位置设为 x=-0.265（后方）、y=+0.265（左侧）、z=0.095 -->
+  <joint name="rear_left_wheel_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="rear_left_wheel"/>
+    <origin xyz="-0.265 0.265 0.095" rpy="0 0 0"/>
+  </joint>
+
+  <!-- 后右轮 -->
+  <joint name="rear_right_wheel_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="rear_right_wheel"/>
+    <origin xyz="-0.265 -0.265 0.095" rpy="0 0 0"/>
+  </joint>
+
+</robot>
